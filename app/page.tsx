@@ -149,42 +149,54 @@ function TasksView({ tasks, onAddTask, onUpdateStatus }: any) {
 
   return (
     <div className="animate-in slide-in-from-bottom-4 duration-500">
-      <h2 className="text-3xl font-black mb-8 uppercase tracking-tighter">Task Assignment</h2>
+      <h2 className="text-3xl font-black mb-8 uppercase tracking-tighter text-white">Task Assignment</h2>
       
       <div className="flex space-x-2 mb-8">
         <input 
           value={input}
           onChange={e => setInput(e.target.value)}
           placeholder="Enter new task for Jarvis..." 
-          className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500"
+          className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-orange-500 text-white"
         />
         <button 
           onClick={() => { if(input) { onAddTask(input); setInput(''); } }}
-          className="bg-orange-600 hover:bg-orange-500 px-6 py-3 rounded-xl font-bold flex items-center space-x-2"
+          className="bg-orange-600 hover:bg-orange-500 px-6 py-3 rounded-xl font-bold flex items-center space-x-2 text-white"
         >
           <Plus size={18} />
           <span>Assign Task</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 gap-4 text-left">
         {tasks.map((t: any) => (
-          <div key={t.id} className="p-5 bg-slate-900 border border-slate-800 rounded-2xl flex justify-between items-center group hover:border-slate-600 transition-all">
-            <div>
-              <p className="font-bold text-slate-200">{t.label}</p>
-              <p className="text-[10px] text-slate-500 font-mono mt-1 uppercase">{new Date(t.date).toLocaleString()}</p>
+          <div key={t.id} className="p-5 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col group hover:border-slate-600 transition-all">
+            <div className="flex justify-between items-center w-full">
+              <div>
+                <p className="font-bold text-slate-200">{t.label}</p>
+                <p className="text-[10px] text-slate-500 font-mono mt-1 uppercase">{new Date(t.date).toLocaleString()}</p>
+              </div>
+              <div className="flex space-x-2">
+                {t.status === 'Pending' && (
+                  <button onClick={() => onUpdateStatus(t.id, 'Running')} className="px-3 py-1 bg-orange-600/10 text-orange-500 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-orange-600 hover:text-white transition-all">Start</button>
+                )}
+                {t.status === 'Running' && (
+                  <button onClick={() => onUpdateStatus(t.id, 'Completed')} className="px-3 py-1 bg-green-500/10 text-green-500 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-green-600 hover:text-white transition-all">Complete</button>
+                )}
+                <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-widest ${t.status === 'Completed' ? 'bg-green-500/20 text-green-500' : t.status === 'Running' ? 'bg-orange-500/20 text-orange-500' : 'bg-slate-800 text-slate-500'}`}>
+                  {t.status}
+                </span>
+              </div>
             </div>
-            <div className="flex space-x-2">
-              {t.status === 'Pending' && (
-                <button onClick={() => onUpdateStatus(t.id, 'Running')} className="px-3 py-1 bg-orange-600/10 text-orange-500 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-orange-600 hover:text-white transition-all">Start</button>
-              )}
-              {t.status === 'Running' && (
-                <button onClick={() => onUpdateStatus(t.id, 'Completed')} className="px-3 py-1 bg-green-500/10 text-green-500 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-green-600 hover:text-white transition-all">Complete</button>
-              )}
-              <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-widest ${t.status === 'Completed' ? 'bg-green-500/20 text-green-500' : 'bg-slate-800 text-slate-500'}`}>
-                {t.status}
-              </span>
-            </div>
+            
+            {t.comments && t.comments.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-slate-800 space-y-2">
+                {t.comments.map((c: string, i: number) => (
+                  <p key={i} className="text-xs text-slate-400 font-mono italic">
+                    <span className="text-orange-900 mr-2">/ jarvis:</span> {c}
+                  </p>
+                ))}
+              </div>
+            )}
           </div>
         ))}
       </div>

@@ -33,6 +33,7 @@ export async function POST(request: Request) {
       label: body.label,
       status: body.status || 'Pending',
       date: new Date().toISOString(),
+      comments: body.comments || []
     };
     
     tasks.push(newTask);
@@ -50,9 +51,16 @@ export async function PATCH(request: Request) {
     const tasksRaw = await client.get('bazzar_tasks');
     let tasks = tasksRaw ? JSON.parse(tasksRaw) : [];
     
-    tasks = tasks.map((task: any) => 
-      task.id === body.id ? { ...task, status: body.status } : task
-    );
+    tasks = tasks.map((task: any) => {
+      if (task.id === body.id) {
+        return { 
+          ...task, 
+          status: body.status !== undefined ? body.status : task.status,
+          comments: body.comment ? [...(task.comments || []), body.comment] : (task.comments || [])
+        };
+      }
+      return task;
+    });
     
     await client.set('bazzar_tasks', JSON.stringify(tasks));
     return NextResponse.json({ success: true });
