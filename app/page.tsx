@@ -10,6 +10,9 @@ import {
 // Types
 type Tab = 'dashboard' | 'staff' | 'tasks' | 'database' | 'live';
 
+export default function BazzarFactory() {
+  const [activeTab, setActiveTab] = useState<Tab>('dashboard');
+  const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
   const [status, setStatus] = useState({
     balance: '11.00 ₽',
     profit: '+1,400 ₽',
@@ -27,7 +30,7 @@ type Tab = 'dashboard' | 'staff' | 'tasks' | 'database' | 'live';
   return (
     <div className="flex bg-slate-950 min-h-screen font-sans antialiased text-slate-200">
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 h-screen text-white p-6 fixed border-r border-slate-800">
+      <aside className="w-64 bg-slate-900 h-screen text-white p-6 fixed border-r border-slate-800 top-0 left-0">
         <div className="flex items-center space-x-2 mb-10">
           <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center font-bold">B</div>
           <h1 className="text-xl font-bold tracking-tight text-white">BAZZAR FACTORY</h1>
@@ -80,7 +83,7 @@ type Tab = 'dashboard' | 'staff' | 'tasks' | 'database' | 'live';
 
       {/* Main Content */}
       <main className="ml-64 p-8 w-full">
-        {activeTab === 'dashboard' && <DashboardView onSelectAgent={(id) => { setSelectedAgent(id); setActiveTab('staff'); }} />}
+        {activeTab === 'dashboard' && <DashboardView status={status} onSelectAgent={(id) => { setSelectedAgent(id); setActiveTab('staff'); }} />}
         {activeTab === 'staff' && <StaffView selectedAgentId={selectedAgent} onBack={() => setSelectedAgent(null)} />}
         {activeTab === 'database' && <DatabaseView />}
         {activeTab === 'tasks' && <TasksView />}
@@ -107,7 +110,7 @@ function NavItem({ icon, label, active, onClick }: { icon: any, label: string, a
   );
 }
 
-function DashboardView({ onSelectAgent }: { onSelectAgent: (id: string) => void }) {
+function DashboardView({ status, onSelectAgent }: { status: any, onSelectAgent: (id: string) => void }) {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <header className="flex justify-between items-end mb-10">
@@ -116,8 +119,8 @@ function DashboardView({ onSelectAgent }: { onSelectAgent: (id: string) => void 
           <p className="text-slate-500 mt-1">Real-time performance monitoring for BAZZAR project.</p>
         </div>
         <div className="flex space-x-3">
-           <StatCard icon={<Wallet size={16} />} label="Avito Balance" value="11.00 ₽" sub="Critical" alert />
-           <StatCard icon={<TrendingUp size={16} />} label="Net Profit (24h)" value="+1,400 ₽" sub="Optimal" />
+           <StatCard icon={<Wallet size={16} />} label="Avito Balance" value={status.balance} subText="Critical" alert />
+           <StatCard icon={<TrendingUp size={16} />} label="Net Profit (24h)" value={status.profit} subText="Optimal" />
         </div>
       </header>
 
@@ -129,30 +132,16 @@ function DashboardView({ onSelectAgent }: { onSelectAgent: (id: string) => void 
           </h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <AgentSummaryCard 
-            id="jarvis"
-            name="Jarvis" 
-            role="Factory Manager" 
-            status="Online" 
-            task="Synchronizing database and coordinating sub-agents..." 
-            onClick={() => onSelectAgent('jarvis')}
-          />
-          <AgentSummaryCard 
-            id="support"
-            name="Support-Avito" 
-            role="Sales Assistant" 
-            status="Online" 
-            task="Monitoring incoming messages. Cooldown: 12m." 
-            onClick={() => onSelectAgent('support')}
-          />
-          <AgentSummaryCard 
-            id="smm"
-            name="SMM-Bot" 
-            role="Content Creator" 
-            status="Idle" 
-            task="Awaiting new product data for Telegram channel..." 
-            onClick={() => onSelectAgent('smm')}
-          />
+          {status.agents.map((agent: any) => (
+            <AgentSummaryCard 
+              key={agent.id}
+              name={agent.name} 
+              role={agent.role} 
+              status={agent.status} 
+              task={agent.task} 
+              onClick={() => onSelectAgent(agent.id)}
+            />
+          ))}
         </div>
       </section>
 
@@ -378,7 +367,7 @@ function LogsView() {
   );
 }
 
-function StatCard({ icon, label, value, sub, alert = false }: { icon: any, label: string, value: string, sub?: string, alert?: boolean }) {
+function StatCard({ icon, label, value, subText, alert = false }: { icon: any, label: string, value: string, subText?: string, alert?: boolean }) {
   return (
     <div className={`p-4 rounded-2xl border transition-all duration-300 ${alert ? 'bg-red-950/20 border-red-500/30' : 'bg-slate-900 border-slate-800'}`}>
       <div className="flex items-center space-x-2 text-slate-500 mb-1">
@@ -386,14 +375,14 @@ function StatCard({ icon, label, value, sub, alert = false }: { icon: any, label
         <span className="text-[10px] font-bold uppercase tracking-widest">{label}</span>
       </div>
       <div className={`text-2xl font-black ${alert ? 'text-red-500' : 'text-white'}`}>{value}</div>
-      <div className={`text-[10px] font-bold uppercase ${alert ? 'text-red-700' : 'text-slate-600'}`}>{sub}</div>
+      <div className={`text-[10px] font-bold uppercase ${alert ? 'text-red-700' : 'text-slate-600'}`}>{subText}</div>
     </div>
   );
 }
 
-function AgentSummaryCard({ id, name, role, status, task, onClick }: { id: string, name: string, role: string, status: string, task: string, onClick: () => void }) {
+function AgentSummaryCard({ name, role, status, task, onClick }: { name: string, role: string, status: string, task: string, onClick: () => void }) {
   return (
-    <div onClick={onClick} className="bg-slate-900 border border-slate-800 p-5 rounded-2xl hover:border-orange-600 hover:bg-slate-800/30 transition-all cursor-pointer group">
+    <div onClick={onClick} className="bg-slate-900 border border-slate-800 p-5 rounded-2xl hover:border-orange-600 hover:bg-slate-800/30 transition-all cursor-pointer group text-left">
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center font-black text-orange-500 group-hover:bg-orange-600 group-hover:text-white transition-colors">{name[0]}</div>
