@@ -10,9 +10,19 @@ import {
 // Types
 type Tab = 'dashboard' | 'staff' | 'tasks' | 'database' | 'live';
 
-export default function BazzarFactory() {
-  const [activeTab, setActiveTab] = useState<Tab>('dashboard');
-  const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+  const [status, setStatus] = useState({
+    balance: '11.00 ₽',
+    profit: '+1,400 ₽',
+    agents: [
+      { id: 'jarvis', name: 'Jarvis', role: 'Factory Manager', status: 'Online', task: 'Monitoring BAZZAR ecosystem and syncing Notion...' },
+      { id: 'support', name: 'Support-Avito', role: 'Sales Assistant', status: 'Online', task: 'Waiting for Avito filter reset. Ready to sync.' },
+      { id: 'smm', name: 'SMM-Bot', role: 'Content Creator', status: 'Idle', task: 'Awaiting new product data.' },
+    ]
+  });
+
+  useEffect(() => {
+    // Future: Fetch real-time data from /api/status
+  }, []);
 
   return (
     <div className="flex bg-slate-950 min-h-screen font-sans antialiased text-slate-200">
