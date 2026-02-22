@@ -2,7 +2,7 @@ import React from 'react';
 import { Users, LayoutDashboard, Database, CheckSquare, Settings, Activity } from 'lucide-react';
 
 const Sidebar = () => (
-  <div className="w-64 bg-slate-900 h-screen text-white p-6 fixed">
+  <div className="w-64 bg-slate-900 h-screen text-white p-6 fixed top-0 left-0">
     <h1 className="text-2xl font-bold mb-10 text-orange-500">BAZZAR AI</h1>
     <nav className="space-y-4">
       <NavItem icon={<LayoutDashboard size={20} />} label="Dashboard" active />
@@ -15,14 +15,14 @@ const Sidebar = () => (
   </div>
 );
 
-const NavItem = ({ icon, label, active = false }) => (
+const NavItem = ({ icon, label, active = false }: { icon: any, label: string, active?: boolean }) => (
   <div className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${active ? 'bg-orange-600' : 'hover:bg-slate-800 text-slate-400'}`}>
     {icon}
     <span className="font-medium">{label}</span>
   </div>
 );
 
-const AgentCard = ({ name, role, status, task }) => (
+const AgentCard = ({ name, role, status, task }: { name: string, role: string, status: string, task: string }) => (
   <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg hover:border-orange-500 transition-all cursor-pointer">
     <div className="flex justify-between items-start mb-4">
       <div>
@@ -132,7 +132,7 @@ export default function Home() {
   );
 }
 
-const TaskItem = ({ label, status }) => (
+const TaskItem = ({ label, status }: { label: string, status: string }) => (
   <div className="flex justify-between items-center py-1">
     <span className="text-sm">{label}</span>
     <span className={`text-xs px-2 py-0.5 rounded ${status === 'Done' ? 'text-green-400 bg-green-400/10' : status === 'In Progress' ? 'text-orange-400 bg-orange-400/10' : 'text-slate-500 bg-slate-500/10'}`}>
