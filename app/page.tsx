@@ -368,7 +368,7 @@ function LogsView() {
   );
 }
 
-function StatCard({ icon, label, value, sub, alert = false }: { icon: any, label: string, value: string, subText?: string, alert?: boolean }) {
+function StatCard({ icon, label, value, sub, alert = false }: { icon: any, label: string, value: string, sub?: string, alert?: boolean }) {
   return (
     <div className={`p-4 rounded-2xl border transition-all duration-300 ${alert ? 'bg-red-950/20 border-red-500/30' : 'bg-slate-900 border-slate-800'}`}>
       <div className="flex items-center space-x-2 text-slate-500 mb-1">
