@@ -14,11 +14,11 @@ export default function BazzarFactory() {
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
   const [tasks, setTasks] = useState<any[]>([]);
   const [inventory, setInventory] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [screen, setScreen] = useState<string | null>(null);
 
-  // Fetch Data
+  // Fetch Data & Stream
   useEffect(() => {
-    async function fetchData() {
+    const fetchData = async () => {
       try {
         const [tasksRes, invRes] = await Promise.all([
           fetch('/api/tasks'),
@@ -27,13 +27,30 @@ export default function BazzarFactory() {
         setTasks(await tasksRes.json());
         setInventory(await invRes.json());
       } catch (err) {
-        console.error("Failed to fetch data:", err);
-      } finally {
-        setLoading(false);
+        console.error("Fetch error:", err);
       }
-    }
+    };
+
+    const fetchStream = async () => {
+      if (selectedAgent) {
+        try {
+          const res = await fetch(`/api/stream?id=${selectedAgent}`);
+          const data = await res.json();
+          if (data.screenshot) setScreen(data.screenshot);
+        } catch (err) {
+          console.error("Stream error:", err);
+        }
+      }
+    };
+
     fetchData();
-  }, []);
+    const interval = setInterval(() => {
+      fetchData();
+      fetchStream();
+    }, 5000); // Update every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [selectedAgent]);
 
   const addTask = async (label: string) => {
     const res = await fetch('/api/tasks', {
@@ -75,7 +92,7 @@ export default function BazzarFactory() {
         {activeTab === 'dashboard' && <DashboardView tasks={tasks} />}
         {activeTab === 'tasks' && <TasksView tasks={tasks} onAddTask={addTask} onUpdateStatus={updateTaskStatus} />}
         {activeTab === 'database' && <DatabaseView inventory={inventory} />}
-        {activeTab === 'staff' && <StaffView selectedAgentId={selectedAgent} onBack={() => setSelectedAgent(null)} onSelectAgent={setSelectedAgent} />}
+        {activeTab === 'staff' && <StaffView selectedAgentId={selectedAgent} onBack={() => setSelectedAgent(null)} onSelectAgent={setSelectedAgent} screen={screen} />}
         {activeTab === 'live' && <LogsView />}
       </main>
     </div>
@@ -203,7 +220,7 @@ function DatabaseView({ inventory }: any) {
   );
 }
 
-function StaffView({ selectedAgentId, onBack, onSelectAgent }: any) {
+function StaffView({ selectedAgentId, onBack, onSelectAgent, screen }: any) {
   const agents = [
     { id: 'jarvis', name: 'Jarvis', role: 'Lead Manager', status: 'Online' },
     { id: 'support', name: 'Support-Avito', role: 'Sales Bot', status: 'Online' },
@@ -213,7 +230,7 @@ function StaffView({ selectedAgentId, onBack, onSelectAgent }: any) {
   if (!selectedAgentId) {
     return (
       <div className="animate-in fade-in duration-300">
-        <h2 className="text-3xl font-black mb-8 uppercase tracking-tighter">AI Personnel</h2>
+        <h2 className="text-3xl font-black mb-8 uppercase tracking-tighter text-white">AI Personnel</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {agents.map(a => (
             <div key={a.id} onClick={() => onSelectAgent(a.id)} className="p-6 bg-slate-900 border border-slate-800 rounded-2xl hover:border-orange-500 transition-all cursor-pointer group">
@@ -221,7 +238,7 @@ function StaffView({ selectedAgentId, onBack, onSelectAgent }: any) {
                <h3 className="text-xl font-bold text-white">{a.name}</h3>
                <p className="text-slate-500 text-sm">{a.role}</p>
                <div className="mt-4 flex items-center space-x-2">
-                 <div className={`w-2 h-2 rounded-full ${a.status === 'Online' ? 'bg-green-500' : 'bg-slate-700'}`}></div>
+                 <div className={`w-2 h-2 rounded-full ${a.status === 'Online' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' : 'bg-slate-700'}`}></div>
                  <span className="text-[10px] font-bold uppercase text-slate-400">{a.status}</span>
                </div>
             </div>
@@ -234,10 +251,32 @@ function StaffView({ selectedAgentId, onBack, onSelectAgent }: any) {
   return (
     <div className="animate-in slide-in-from-right-4 duration-300">
       <button onClick={onBack} className="text-slate-500 hover:text-white mb-6 uppercase text-xs font-black">← Return to Staff</button>
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-10 flex flex-col items-center justify-center h-[60vh]">
-          <Activity size={48} className="text-slate-800 animate-pulse mb-4" />
-          <h2 className="text-2xl font-black uppercase text-slate-700 tracking-widest">Live Feed Initializing...</h2>
-          <p className="text-slate-600 mt-2 font-mono text-xs">Waiting for Gateway handshake with {selectedAgentId}.</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-1 space-y-6">
+           <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+              <h2 className="text-2xl font-black mb-2 uppercase text-white">{selectedAgentId}</h2>
+              <span className="px-2 py-1 bg-green-500/10 text-green-500 rounded text-[10px] font-black uppercase tracking-widest">Connected</span>
+           </div>
+        </div>
+
+        <div className="lg:col-span-2 space-y-6">
+           <div className="bg-black border border-slate-800 rounded-3xl overflow-hidden shadow-2xl relative">
+              <div className="absolute top-4 left-4 z-10 bg-red-600 px-2 py-0.5 rounded flex items-center space-x-1.5 shadow-lg">
+                 <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
+                 <span className="text-[10px] font-black text-white uppercase">Live Transmission</span>
+              </div>
+              <div className="aspect-video bg-slate-900 flex items-center justify-center">
+                 {screen ? (
+                    <img src={screen} alt="Agent Screen" className="w-full h-full object-contain" />
+                 ) : (
+                    <div className="text-center">
+                       <Activity size={32} className="text-slate-700 mx-auto mb-2 animate-spin" />
+                       <p className="text-slate-500 font-mono text-xs uppercase tracking-widest">Handshaking Gateway...</p>
+                    </div>
+                 )}
+              </div>
+           </div>
+        </div>
       </div>
     </div>
   );
