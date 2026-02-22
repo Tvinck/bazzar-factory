@@ -55,6 +55,7 @@ export default function BazzarFactory() {
   const addTask = async (label: string) => {
     const res = await fetch('/api/tasks', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ label, status: 'Pending' })
     });
     const newTask = await res.json();
@@ -64,6 +65,7 @@ export default function BazzarFactory() {
   const updateTaskStatus = async (id: string, status: string) => {
     await fetch('/api/tasks', {
       method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, status })
     });
     setTasks(tasks.map(t => t.id === id ? { ...t, status } : t));
